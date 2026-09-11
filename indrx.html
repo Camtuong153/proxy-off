@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proxy Checker Console</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #2b2b2b;
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #383838;
+            width: 100%;
+            max-width: 700px;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            border: 1px solid #4a4a4a;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #ffffff;
+            font-size: 20px;
+            text-align: center;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            background-color: #1e1e1e;
+            border: 1px solid #555;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: #777;
+        }
+
+        button {
+            padding: 12px 20px;
+            background-color: #4a4a4a;
+            color: #fff;
+            border: 1px solid #666;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: #5a5a5a;
+        }
+
+        .console-box {
+            background-color: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 15px;
+            height: 250px;
+            overflow-y: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .log-line {
+            margin-bottom: 4px;
+            word-break: break-all;
+        }
+
+        .text-connecting { color: #e6c547; } /* Vàng */
+        .text-connected { color: #52c41a; }  /* Xanh lá */
+        .text-die { color: #ff4d4f; }        /* Đỏ */
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Proxy Check System</h2>
+
+        <!-- Ô nhập link & Nút bấm -->
+        <div class="input-group">
+            <input type="text" id="proxyInput" placeholder="Nhập địa chỉ Proxy (Ví dụ: 109.199.119.160:80)">
+            <button onclick="startCheck()">Kiểm tra</button>
+        </div>
+
+        <!-- Bảng Console -->
+        <div class="console-box" id="console">
+            <div class="log-line" style="color: #888;">-- Bảng console sẵn sàng --</div>
+        </div>
+    </div>
+
+    <script>
+        const consoleBox = document.getElementById('console');
+
+        // Hàm ghi log vào console
+        function writeLog(text, typeClass) {
+            const line = document.createElement('div');
+            line.className = `log-line ${typeClass}`;
+            line.textContent = text;
+            consoleBox.appendChild(line);
+            consoleBox.scrollTop = consoleBox.scrollHeight; // Tự cuộn xuống dưới
+        }
+
+        function startCheck() {
+            const proxyVal = document.getElementById('proxyInput').value.trim();
+            if (!proxyVal) return;
+
+            // 1. Trạng thái Connecting
+            writeLog(`[*]connecting for server... ; poxy:[${proxyVal}]`, 'text-connecting');
+
+            // Mô phỏng kiểm tra kết nối (Sau 2 giây trả kết quả)
+            setTimeout(() => {
+                // Giả lập tỉ lệ sống/chết ngẫu nhiên để test giao diện
+                const isSuccess = Math.random() > 0.5;
+
+                if (isSuccess) {
+                    // 2. Trạng thái Connected
+                    writeLog(`[~]connected ; proxy:[${proxyVal}]`, 'text-connected');
+                } else {
+                    // 3. Trạng thái Proxy Die
+                    writeLog(`[×]proxy die ; proxy:[${proxyVal}]`, 'text-die');
+                }
+            }, 2000);
+        }
+    </script>
+
+</body>
+</html>
