@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proxy Checker Console</title>
+    <title>Proxy Check System</title>
     <style>
         * {
             box-sizing: border-box;
@@ -80,7 +80,7 @@
             border: 1px solid #444;
             border-radius: 4px;
             padding: 15px;
-            height: 250px;
+            height: 280px;
             overflow-y: auto;
             font-family: 'Courier New', Courier, monospace;
             font-size: 13px;
@@ -102,9 +102,9 @@
     <div class="container">
         <h2>Proxy Check System</h2>
 
-        <!-- Ô nhập link & Nút bấm -->
+        <!-- Ô nhập link / IP & Nút kiểm tra -->
         <div class="input-group">
-            <input type="text" id="proxyInput" placeholder="Nhập địa chỉ Proxy (Ví dụ: 109.199.119.160:80)">
+            <input type="text" id="proxyInput" placeholder="Nhập IP Proxy hoặc Link file .pac">
             <button onclick="startCheck()">Kiểm tra</button>
         </div>
 
@@ -117,35 +117,76 @@
     <script>
         const consoleBox = document.getElementById('console');
 
-        // Hàm ghi log vào console
+        // Ghi log ra màn hình console
         function writeLog(text, typeClass) {
             const line = document.createElement('div');
             line.className = `log-line ${typeClass}`;
             line.textContent = text;
             consoleBox.appendChild(line);
-            consoleBox.scrollTop = consoleBox.scrollHeight; // Tự cuộn xuống dưới
+            consoleBox.scrollTop = consoleBox.scrollHeight;
         }
 
-        function startCheck() {
-            const proxyVal = document.getElementById('proxyInput').value.trim();
-            if (!proxyVal) return;
+        // Bắt đầu luồng kiểm tra
+        async function startCheck() {
+            const inputVal = document.getElementById('proxyInput').value.trim();
+            if (!inputVal) return;
 
-            // 1. Trạng thái Connecting
-            writeLog(`[*]connecting for server... ; poxy:[${proxyVal}]`, 'text-connecting');
+            // Kiểm tra nếu người dùng nhập Link file PAC hoặc Link GitHub Raw
+            if (inputVal.endsWith('.pac') || inputVal.includes('raw.githubusercontent.com')) {
+                writeLog(`[*]fetching PAC file... ; url:[${inputVal}]`, 'text-connecting');
 
-            // Mô phỏng kiểm tra kết nối (Sau 2 giây trả kết quả)
-            setTimeout(() => {
-                // Giả lập tỉ lệ sống/chết ngẫu nhiên để test giao diện
-                const isSuccess = Math.random() > 0.5;
+                try {
+                    const response = await fetch(inputVal);
+                    if (!response.ok) throw new Error("Lỗi khi tải file PAC");
 
-                if (isSuccess) {
-                    // 2. Trạng thái Connected
-                    writeLog(`[~]connected ; proxy:[${proxyVal}]`, 'text-connected');
-                } else {
-                    // 3. Trạng thái Proxy Die
-                    writeLog(`[×]proxy die ; proxy:[${proxyVal}]`, 'text-die');
+                    const pacContent = await response.text();
+
+                    // Tìm tất cả địa chỉ IP:Port nằm trong chuỗi PROXY
+                    const proxyRegex = /PROXY\s+([a-zA-Z0-9.-]+:\d+)/g;
+                    let match;
+                    const extractedProxies = [];
+
+                    while ((match = proxyRegex.exec(pacContent)) !== null) {
+                        extractedProxies.push(match[1]);
+                    }
+
+                    if (extractedProxies.length === 0) {
+                        writeLog(`[×]proxy die ; proxy:[${inputVal}]`, 'text-die');
+                        return;
+                    }
+
+                    // Chạy kiểm tra từng Proxy tìm thấy trong file PAC
+                    for (const proxy of extractedProxies) {
+                        await checkSingleProxy(proxy);
+                    }
+
+                } catch (err) {
+                    writeLog(`[×]proxy die ; proxy:[${inputVal}]`, 'text-die');
                 }
-            }, 2000);
+            } 
+            // Nếu người dùng nhập trực tiếp IP:Port đơn lẻ
+            else {
+                await checkSingleProxy(inputVal);
+            }
+        }
+
+        // Hàm xử lý từng Proxy đơn lẻ
+        function checkSingleProxy(proxyVal) {
+            return new Promise((resolve) => {
+                writeLog(`[*]connecting for server... ; poxy:[${proxyVal}]`, 'text-connecting');
+
+                setTimeout(() => {
+                    // Tỷ lệ mô phỏng phản hồi (Có thể thay thế bằng logic fetch real endpoint)
+                    const isSuccess = Math.random() > 0.4;
+
+                    if (isSuccess) {
+                        writeLog(`[~]connected ; proxy:[${proxyVal}]`, 'text-connected');
+                    } else {
+                        writeLog(`[×]proxy die ; proxy:[${proxyVal}]`, 'text-die');
+                    }
+                    resolve();
+                }, 1500);
+            });
         }
     </script>
 
