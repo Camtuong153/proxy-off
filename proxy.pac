@@ -31,8 +31,7 @@ function FindProxyForURL(url, host) {
 
     // 3. Nếu khớp Domain -> Thử lần lượt danh sách Proxy SỐNG
     if (matchDomain) {
-        return "PROXY 109.199.119.160:80; " +
-               "PROXY 176.61.151.123:80; " +
+        return "PROXY 176.61.151.123:80; " +
                "PROXY 144.24.128.145:3129; " +
                "PROXY 108.161.135.118:80; " +
                "PROXY 31.57.178.141:8080; " +
